@@ -26,7 +26,6 @@ TEMPLATE_DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
 # Application definition
 
 INSTALLED_APPS = (
@@ -36,6 +35,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'mediaide_core',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -50,6 +50,7 @@ MIDDLEWARE_CLASSES = (
 ROOT_URLCONF = 'mediaide.urls'
 
 WSGI_APPLICATION = 'mediaide.wsgi.application'
+AUTH_USER_MODEL = 'mediaide_core.CustomUser'
 
 
 # Database
@@ -57,8 +58,12 @@ WSGI_APPLICATION = 'mediaide.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'mediaide_db',
+        'USER': 'root',
+        'PASSWORD': 'root',
+        'HOST': 'localhost',
+        'PORT': '',
     }
 }
 
