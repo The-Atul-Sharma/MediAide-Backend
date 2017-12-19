@@ -1,12 +1,13 @@
-from django.conf.urls import patterns, include, url
+from django.conf.urls import include, url
+from rest_framework_jwt.views import obtain_jwt_token
 
 from django.contrib import admin
 admin.autodiscover()
 
-urlpatterns = patterns('',
-    # Examples:
-    # url(r'^$', 'mediaide.views.home', name='home'),
-    # url(r'^blog/', include('blog.urls')),
-
+urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
-)
+    url(r'^login/', obtain_jwt_token),
+    url(r'^api/', include('mediaide_core.urls')),
+
+    # ... your url patterns
+]

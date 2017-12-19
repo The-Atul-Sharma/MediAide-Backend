@@ -14,13 +14,14 @@ GENDER_CHOICES = (
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(_('email address'), unique=True)
-    first_name = models.CharField(_('first name'), max_length=30, blank=True)
-    last_name = models.CharField(_('last name'), max_length=30, blank=True)
+    full_name = models.CharField(_('full name'), max_length=30, blank=True)
     date_of_birth = models.DateTimeField(_('date of birth'), auto_now_add=True)
     phone = models.IntegerField(null=True,blank=True)
     gender = models.CharField( max_length=1, choices=GENDER_CHOICES)
     is_active = models.BooleanField(_('active'), default=True)
     is_staff = models.BooleanField(_('staff'), default=True)
+    address = models.CharField(max_length=70, blank=True)
+    date_joined =  models.DateTimeField(auto_now_add=True)
     term_and_condition = models.BooleanField(_('T&C'), default=False)
 
     objects = UserManager()
@@ -30,31 +31,17 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         '''
         Returns the first_name plus the last_name, with a space in between.
         '''
-        full_name = '%s %s' % (self.first_name, self.last_name)
-        return full_name.strip()
+
+        return self.full_name.strip()
 
     def get_short_name(self):
         '''
         Returns the short name for the user.
         '''
-        return self.first_name
+        return self.full_name
 
     def email_user(self, subject, message, from_email=None, **kwargs):
-        '''
-        Sends an email to this User.
-        '''
         send_mail(subject, message, from_email, [self.email], **kwargs)
-
-
-class Address(models.Model):
-    user = models.ForeignKey(CustomUser,on_delete=models.CASCADE)
-    address1 = models.CharField("Address line 1", max_length=1024)
-    address2 = models.CharField("Address line 2", max_length=1024)
-    zip_code = models.CharField("ZIP / Postal code", max_length=12)
-    city = models.CharField("City", max_length=1024)
-    0#TODO we have to give iso country name list as chooise
-    country = models.CharField("Country", max_length=3,
-                               )
 
 
 class TermsAndConditions(models.Model):
