@@ -15,7 +15,7 @@ GENDER_CHOICES = (
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(_('email address'), unique=True)
     name = models.CharField(_('full name'), max_length=30, blank=True)
-    date_of_birth = models.DateTimeField(_('date of birth'), auto_now_add=True)
+    dob = models.DateTimeField(_('date of birth'), auto_now_add=True)
     phone = models.CharField(max_length=12, null=True, blank=True)
     country = models.CharField(_('country'), max_length=30, blank=True)
 
@@ -23,7 +23,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(_('active'), default=True)
     is_staff = models.BooleanField(_('staff'), default=True)
     address = models.CharField(max_length=70, blank=True)
-    dob =  models.DateTimeField(auto_now_add=True)
+    date_joined =  models.DateTimeField(auto_now_add=True)
     agree = models.BooleanField(_('T&C'), default=False)
 
     objects = UserManager()
@@ -105,6 +105,7 @@ class UserEnquiry(models.Model):
 class ContactUs(models.Model):
     name = models.CharField(max_length=255)
     email = models.EmailField(_('email address'), unique=True)
+    phone = models.CharField(max_length=12, null=True, blank=True)
     message = models.TextField(null=True, blank=True)
     subject = models.TextField(null=True, blank=True)
 
@@ -118,3 +119,10 @@ class Facilities(models.Model):
 
     def __unicode__(self):
         return "{}-{}".format(self.name, self.cost)
+
+
+class Country(models.Model):
+    name = models.CharField(max_length=255)
+
+    def __unicode__(self):
+        return self.name

@@ -1,7 +1,8 @@
 from django.contrib import admin
 
 from mediaide_core.models import MedicalPackages, CustomUser, UserTreatmentPackages, TermsAndConditions, \
-    UserEnquiry, Facilities, ContactUs, UserDocuments,CountryVisa
+    UserEnquiry, Facilities, ContactUs, UserDocuments, CountryVisa, Country
+
 # Register your models here.
 
 admin.site.register(CountryVisa)
@@ -13,3 +14,4 @@ admin.site.register(UserEnquiry)
 admin.site.register(Facilities)
 admin.site.register(ContactUs)
 admin.site.register(UserDocuments)
+admin.site.register(Country)

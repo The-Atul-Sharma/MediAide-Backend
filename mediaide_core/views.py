@@ -1,25 +1,22 @@
 import datetime
-from datetime import timedelta
 import jwt
 from django.contrib.auth import authenticate
-from rest_framework import status
+from django.forms.models import model_to_dict
 from django.utils import timezone
-from django.views.decorators.csrf import csrf_exempt
 from rest_framework import serializers
-from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view
 
 
-from django.http.response import HttpResponse, JsonResponse
+from django.http.response import HttpResponse
 from rest_framework import viewsets
 
 from mediaide import settings
 from mediaide_core.confirmation import account_activation_token
-from mediaide_core.models import CustomUser, CountryVisa, MedicalPackages, Facilities, UserEnquiry, ContactUs
+from mediaide_core.models import CustomUser, CountryVisa, MedicalPackages, Facilities, UserEnquiry, ContactUs, Country
 from mediaide_core.serializer import CustomUserSerializer, CountryVisaSerializer, MedicalPackagesSerializer, \
     FacilitiesSerializer, UserEnquirySerializer, ContactUsSerializer
 from rest_framework.views import APIView
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny,IsAuthenticatedOrReadOnly
 from rest_framework import status
 from rest_framework.response import Response
 
@@ -110,6 +107,7 @@ def reset_password(request):
 class CustomUserView(viewsets.ModelViewSet):
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer
+    permission_classes = (IsAuthenticatedOrReadOnly,)
 
 
 class UserEnquiryView(viewsets.ModelViewSet):
@@ -128,6 +126,7 @@ class CountryVisaView(viewsets.ModelViewSet):
     serializer_class = CountryVisaSerializer
 
 
+
 class MedicalPackagesView(viewsets.ModelViewSet):
     queryset = MedicalPackages.objects.all()
     serializer_class = MedicalPackagesSerializer
@@ -136,13 +135,6 @@ class MedicalPackagesView(viewsets.ModelViewSet):
 class FacilitiesView(viewsets.ModelViewSet):
     queryset = Facilities.objects.all()
     serializer_class = FacilitiesSerializer
-
-
-class EstimateCost(APIView):
-
-    def post(self,request):
-        email = request.data.get('email')
-        user = CustomUser.objects.get(email=email)
 
 @api_view(['POST'])
 def user_login( request):
@@ -161,3 +153,55 @@ def user_login( request):
         return Response(dict(response_data),status=status.HTTP_200_OK)
     else:
         raise serializers.ValidationError('incorrect email or password')
+
+
+@api_view(['GET','POST'])
+def get_estimate_data(request):
+
+    def validated_treatment(treatment):
+        medical_package_instance = MedicalPackages.objects.filter(id=treatment)
+        if medical_package_instance.exists():
+            return medical_package_instance[0]
+        else:
+            raise serializers.ValidationError('No Such Medical Package Exits..')
+
+    def validated_country(country):
+        country_instance = Country.objects.filter(name=country)
+        if country_instance.exists():
+            return country_instance[0]
+        else:
+            raise serializers.ValidationError('No Such Country Exits..')
+
+    def validate_patient(patients):
+        if patients<=0:
+            raise serializers.ValidationError(' number of patient should be 0')
+        return patients
+
+    if request.method == 'GET':
+
+        response_dict = {}
+        response_dict['country'] = Country.objects.all().values_list('name',flat=1)
+        response_dict['treatment'] = MedicalPackages.objects.all().values('id','name_of_treatment')
+        response_dict['facilities'] = Facilities.objects.all().values_list('name', flat=1)
+
+        return Response(response_dict)
+
+    if request.method=='POST':
+        # data = {
+        #     'treatment':2,
+        #     'country':'UK',
+        #     'patients':2,
+        #     'facilities':['airline','Hotel']
+        # }
+        data = request.data
+
+        treatment = validated_treatment(data.get('treatment',0))
+        country = validated_country(data.get('country',))
+        facilities = data.get('facilities',[])
+        number_of_patient = data.get('patients')
+        totel_treatment_cost = treatment.approximate_cost*number_of_patient
+        facilities = Facilities.objects.filter(name__in=facilities).values_list('cost',flat=1)
+        facilities_cost=sum(facilitie/100000 for facilitie in facilities)*number_of_patient
+        teratment_dict = model_to_dict(treatment)
+        teratment_dict.update({'estimate_cost':totel_treatment_cost})
+        return Response(teratment_dict)
