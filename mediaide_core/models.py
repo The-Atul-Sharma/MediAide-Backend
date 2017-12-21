@@ -7,22 +7,24 @@ from mediaide_core.manager import UserManager
 from django.utils.translation import ugettext_lazy as _
 
 GENDER_CHOICES = (
-    ('M', 'Male'),
-    ('F', 'Female'),
+    ('Male', 'Male'),
+    ('Female', 'Female'),
 )
 
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(_('email address'), unique=True)
-    full_name = models.CharField(_('full name'), max_length=30, blank=True)
+    name = models.CharField(_('full name'), max_length=30, blank=True)
     date_of_birth = models.DateTimeField(_('date of birth'), auto_now_add=True)
-    phone = models.IntegerField(null=True,blank=True)
-    gender = models.CharField( max_length=1, choices=GENDER_CHOICES)
+    phone = models.CharField(max_length=12, null=True, blank=True)
+    country = models.CharField(_('country'), max_length=30, blank=True)
+
+    gender = models.CharField( max_length=7, choices=GENDER_CHOICES)
     is_active = models.BooleanField(_('active'), default=True)
     is_staff = models.BooleanField(_('staff'), default=True)
     address = models.CharField(max_length=70, blank=True)
-    date_joined =  models.DateTimeField(auto_now_add=True)
-    term_and_condition = models.BooleanField(_('T&C'), default=False)
+    dob =  models.DateTimeField(auto_now_add=True)
+    agree = models.BooleanField(_('T&C'), default=False)
 
     objects = UserManager()
     USERNAME_FIELD = 'email'
@@ -32,13 +34,13 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         Returns the first_name plus the last_name, with a space in between.
         '''
 
-        return self.full_name.strip()
+        return self.name.strip()
 
     def get_short_name(self):
         '''
         Returns the short name for the user.
         '''
-        return self.full_name
+        return self.name
 
     def email_user(self, subject, message, from_email=None, **kwargs):
         send_mail(subject, message, from_email, [self.email], **kwargs)
