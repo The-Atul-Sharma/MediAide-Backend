@@ -2,9 +2,10 @@ from django.core.mail import send_mail
 from django.db import models
 from django.contrib.auth.models import PermissionsMixin, AbstractBaseUser
 
+
 # Create your models here.
-from mediaide_core.manager import UserManager
 from django.utils.translation import ugettext_lazy as _
+from mediaide_core.manager import UserManager
 
 GENDER_CHOICES = (
     ('Male', 'Male'),
@@ -89,12 +90,12 @@ class UserTreatmentPackages(models.Model):
 
 class UserEnquiry(models.Model):
     name = models.CharField(max_length=255)
-    date_of_birth = models.DateTimeField(auto_now_add=True)
+    dob = models.DateTimeField(auto_now_add=True)
     phone = models.IntegerField(null=True, blank=True)
-    sex = models.CharField(max_length=1, choices=GENDER_CHOICES)
-    email = models.EmailField(_('email address'), unique=True)
+    gender = models.CharField(max_length=7, choices=GENDER_CHOICES)
+    email = models.EmailField(_('email address'))
     message =models.TextField(null=True, blank=True)
-    appointment_date =  models.DateTimeField(_('appointment date'), auto_now_add=True)
+    appointment_date = models.DateTimeField(_('appointment date'), auto_now_add=True)
     #TODO we have to make list
     reason = models.CharField(max_length=255)
 
@@ -104,7 +105,7 @@ class UserEnquiry(models.Model):
 
 class ContactUs(models.Model):
     name = models.CharField(max_length=255)
-    email = models.EmailField(_('email address'), unique=True)
+    email = models.EmailField(_('email address'))
     phone = models.CharField(max_length=12, null=True, blank=True)
     message = models.TextField(null=True, blank=True)
     subject = models.TextField(null=True, blank=True)

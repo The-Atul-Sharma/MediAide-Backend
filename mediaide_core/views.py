@@ -12,9 +12,10 @@ from rest_framework import viewsets
 
 from mediaide import settings
 from mediaide_core.confirmation import account_activation_token
-from mediaide_core.models import CustomUser, CountryVisa, MedicalPackages, Facilities, UserEnquiry, ContactUs, Country
+from mediaide_core.models import CustomUser, CountryVisa, MedicalPackages, Facilities, UserEnquiry, ContactUs, Country, \
+    UserDocuments
 from mediaide_core.serializer import CustomUserSerializer, CountryVisaSerializer, MedicalPackagesSerializer, \
-    FacilitiesSerializer, UserEnquirySerializer, ContactUsSerializer
+    FacilitiesSerializer, UserEnquirySerializer, ContactUsSerializer, UserDocumentsSerializer
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny,IsAuthenticatedOrReadOnly
 from rest_framework import status
@@ -31,7 +32,7 @@ class RegisterUser(APIView):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response('Register successfully please check your email', status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -71,6 +72,7 @@ class ResendMes(APIView):
             return Response(status=status.HTTP_200_OK)
 
 
+@api_view(['POST'])
 def forget_password(request):
     email = request.data.get('email',None)
     user_object = CustomUser.objects.filter(email=email)
@@ -84,6 +86,9 @@ def forget_password(request):
             account_activation_token.make_token(user_object))+'/'+user_object.id
 
         user_object.email_user(title, content, 'no-reply@mediaide.com')
+        return Response('check your email for reset link ')
+    else:
+        raise serializers.ValidationError('email not found')
 
 
 def reset_password(request):
@@ -114,12 +119,18 @@ class UserEnquiryView(viewsets.ModelViewSet):
     queryset = UserEnquiry.objects.all()
     serializer_class = UserEnquirySerializer
 
+    def create(self, request, *args, **kwargs):
+        super(UserEnquiryView,self).create(request, args, kwargs)
+        return Response('Thank you for concern, soon our excutive will get in contact with you',status=status.HTTP_201_CREATED)
+
 
 class ContactUsView(viewsets.ModelViewSet):
     queryset = ContactUs.objects.all()
     serializer_class = ContactUsSerializer
 
-
+    def create(self, request, *args, **kwargs):
+        super(ContactUsView,self).create(request, args, kwargs)
+        return Response('Thank you for concern, soon our excutive will get contact with you',status=status.HTTP_201_CREATED)
 
 class CountryVisaView(viewsets.ModelViewSet):
     queryset = CountryVisa.objects.all()
@@ -187,13 +198,13 @@ def get_estimate_data(request):
         return Response(response_dict)
 
     if request.method=='POST':
-        # data = {
-        #     'treatment':2,
-        #     'country':'UK',
-        #     'patients':2,
-        #     'facilities':['airline','Hotel']
-        # }
-        data = request.data
+        data = {
+            'treatment':2,
+            'country':'UK',
+            'patients':2,
+            'facilities':['airline','Hotel']
+        }
+        # data = request.data
 
         treatment = validated_treatment(data.get('treatment',0))
         country = validated_country(data.get('country',))
@@ -205,3 +216,8 @@ def get_estimate_data(request):
         teratment_dict = model_to_dict(treatment)
         teratment_dict.update({'estimate_cost':totel_treatment_cost})
         return Response(teratment_dict)
+
+
+class UserDocumentView(viewsets.ModelViewSet):
+    queryset = UserDocuments.objects.all()
+    serializer_class = UserDocumentsSerializer
