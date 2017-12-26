@@ -3,6 +3,7 @@ blessed==1.14.2
 botocore==1.8.20
 cement==2.8.2
 colorama==0.3.7
+configparser==3.5.0
 Django==1.9
 django-filter==1.1.0
 djangorestframework==3.7.3
