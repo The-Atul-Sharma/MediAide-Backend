@@ -25,6 +25,6 @@ urlpatterns = [
     url(r'^forgot-password/$', forget_password),
     url(r'^get-estimate/$', get_estimate_data),
     url(r'^resend-confirmation-mail/$', ResendMes.as_view()),
-    url(r'^confirm/(?P<confirmation_code>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/(?P<username>[\w]+)/$',
+    url(r'^confirm/(?P<confirmation_code>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/(?P<id>[\w]+)/$',
         views.confirm,name='confirm'),
 ]
