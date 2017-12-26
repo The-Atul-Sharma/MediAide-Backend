@@ -46,8 +46,9 @@ class Logout(APIView):
 
 
 #TODO UserName Must Be Unique
-def confirm(request,confirmation_code, username):
-    user = CustomUser.objects.get(name=username)
+def confirm(request,confirmation_code, id):
+
+    user = CustomUser.objects.get(id=int(id))
     if user and account_activation_token.check_token(user,confirmation_code) and user.date_joined > (
             timezone.now() - datetime.timedelta(days=1)):
         user.is_active = True
@@ -67,7 +68,8 @@ class ResendMes(APIView):
             title = "MediAide account confirmation"
             content = " welcome to Mediaide. below is the account activation link  " \
                       "http://localhost:8000/api/confirm/" + str(
-                account_activation_token.make_token(user)) + '/' + user.name+'/'
+                account_activation_token.make_token(user)) + '/' + str(user.id)+'/'
+
             user.email_user(title,content, 'no-reply@mediaide.com')
             return Response(status=status.HTTP_200_OK)
 
@@ -82,8 +84,8 @@ def forget_password(request):
 
         title = " MediAide Password Reset Link "
         content = "below is the password reset link " \
-                  "http://localhost:8000/api/confirm/" + str(
-            account_activation_token.make_token(user_object))+'/'+user_object.id
+                  "http://192.168.43.110:8000/api/confirm/" + str(
+            account_activation_token.make_token(user_object))+'/'+str(user_object.id)
 
         user_object.email_user(title, content, 'no-reply@mediaide.com')
         return Response('check your email for reset link ')
@@ -130,7 +132,8 @@ class ContactUsView(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         super(ContactUsView,self).create(request, args, kwargs)
-        return Response('Thank you for concern, soon our excutive will get contact with you',status=status.HTTP_201_CREATED)
+        return Response('Thank you for your concern, soon our excutive will get contact with you',status=status.HTTP_201_CREATED)
+
 
 class CountryVisaView(viewsets.ModelViewSet):
     queryset = CountryVisa.objects.all()
@@ -153,11 +156,12 @@ def user_login( request):
     email = request.data.get('email',)
     password = request.data.get('password',)
 
-    if not email and not password:
-        pass
-
     user = authenticate(email=email, password=password)
-    if user:
+
+    if not user.is_active:
+        raise serializers.ValidationError(' please verify email ')
+
+    if user and user.is_active:
         encoded_token = jwt.encode({'user_id': user.id}, settings.SECRET_KEY, algorithm =settings.JWT_ALGORITHM)
         response_data = CustomUserSerializer().to_representation(user)
         response_data.update({'token':encoded_token})
@@ -198,13 +202,8 @@ def get_estimate_data(request):
         return Response(response_dict)
 
     if request.method=='POST':
-        data = {
-            'treatment':2,
-            'country':'UK',
-            'patients':2,
-            'facilities':['airline','Hotel']
-        }
-        # data = request.data
+
+        data = request.data
 
         treatment = validated_treatment(data.get('treatment',0))
         country = validated_country(data.get('country',))
